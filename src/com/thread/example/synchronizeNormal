@@ -1,0 +1,162 @@
+包括：
+一. synchronized 修饰的代码块与方法
+二. synchronized（this）
+
+一. synchronized 修饰的代码块与方法
+         synchronized 可以作为多线程问题的一种解决方法。synchronized 可以修饰 代码块 ，也可以修饰方法 。利用synchronized 修饰的时候，同一时刻只能有一个线程执行这段代码块。注意，其他非加锁的代码多个线程仍然可以同时访问。
+
+1.1 synchronized 修饰代码块：
+         synchronized 修饰代码块 主要形式为 synchronized(object){ //...}，观察如下程序：
+public class Syn {
+	private static Integer i = 0;
+
+	public static void main(String[] args) {
+		createThread();
+		createThread();
+	}
+
+	private static void createThread(){
+		new Thread( () -> {System.out.println(++i);}).start();
+	}
+}
+
+         在上面的程序中，则可能会出现多线程问题，比如说当 A线程 拿到 i = 0，再进行 加 1，此时 i = 1，但是 A 线程还没有把 i = 1 写入到共享变量中的时候， B线程就拿了 i = 0 这个值，再进行加1，所以最后结果会出现 i = 1，显然是不对的，不是我们期望的。
+
+Ps：像以上程序可能是出现 1,2 ； 1,1；2,1 的组合，解释：
+1,2 组合：正常情况。A 线程先执行完，i变1打印，B线程再执行，得到 i = 1，再加1，i变2打印，所以 有1,2 的组合。
+1,1组合：A 线程先执行完，i变1打印，但是，此时 A 线程还没来得及把改变后的值写入到主内存中，B线程就从主内存中把 i = 0 的值取走，再进行i ++，结果为1。所以会打印出 1,1 的组合。
+2,1 组合：A 线程先执行完，i变1，写入到主内存，此时还未来得及打印，那么 B 线程马上从主内存中从走 i = 1，然后进行 加1，此时还未来得到写入到主内存，A 线程执行打印语句，那么要先从主内存中取 i，此时由于 B还没写入，所以取到 i = 1，但是，B线程马上写入主内存，又马上执行打印，所以会先有 i = 2，然后A线程再打印，i = 1，所以会有2，1 的组合。
+
+此时可以对该对象 i 加锁，如下：
+public class Syn {
+	private static Integer i = 0;
+	private static Object obj = new Object();
+
+	public static void main(String[] args) {
+		createThread();
+		createThread();
+	}
+
+	private static void createThread(){
+		new Thread( () -> {
+			synchronized (obj) {
+				System.out.println(++i);
+			}
+		}).start();
+	}
+}
+
+         这样就可以避免出现以上的多线程问题。注意，像如下的锁定方法还是会出现问题的，自己还没想懂，有哪位大神知道的话 多多指教。
+public class Syn {
+	private static Integer i = 0;
+	private static Object obj = new Object();
+
+	public static void main(String[] args) {
+		createThread();
+		createThread();
+	}
+
+	private static void createThread(){
+		new Thread( () -> {
+			synchronized (i) {
+				System.out.println(++i);
+			}
+		}).start();
+	}
+}
+
+1.2 synchronized 修饰方法   ：
+观察如下方法
+public class Syn1 {
+	private static Integer i = 0;
+
+	public static void main(String[] args) {
+		new Thread(()->{print();}).start();
+		new Thread(()->{print();}).start();
+	}
+
+	public static void print(){
+		System.out.println(++i);
+	}
+}
+
+         那么，有可能出现1,1；1,2；2,1 三种情况，原因如上 synchronized 修饰对象一样。 那么此时除了可以用synchronized 修饰对象的方法，还可以用 synchronized 修饰方法的方式，解决同步问题，如下：
+public class Syn1 {
+	private static Integer i = 0;
+
+	public static void main(String[] args) {
+		new Thread(()->{print();}).start();
+		new Thread(()->{print();}).start();
+	}
+
+	public static synchronized void print(){
+		System.out.println(++i);
+	}
+}
+
+         当用synchronized 修饰方法的时候，一个时刻只能有一个线程访问该方法，但是对于其他没有被同步修饰的方法，还是可以多个线程同时进行访问。
+
+二. synchronized（this）
+         当两个并发线程访问同一个对象 object 中的这个 synchronized(this) 同步代码块的时候，一个时间只能有一个线程得到执行，另外的线程如果想要执行必须要等其执行完。当然，还是可以同时访问 其非同步方法。
+         例如如下代码：
+public class Syn1 {
+
+	public static void main(String[] args) throws InterruptedException {
+
+		Student stu = new Student();
+
+		new Thread(() -> {
+			try {
+				stu.print();
+			} catch (Exception e) {
+			}
+		}).start();
+
+		new Thread(() -> {
+			try {
+				stu.print();
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}).start();
+	}
+}
+class Student{
+	public void print() throws InterruptedException{
+		System.out.println("hello world!");
+		Thread.sleep(2000);
+	}
+}
+
+         在上述的代码中，B线程不会等到A线程打印完 hello world 再 休眠 2 秒后，自己再打印 hello world，而是一开始 A，B线程都会一起进入这个方法。
+         那么如果我们要求 A 线程 全部执行完之后，再执行 B 线程的东西，那么我们就可以通过加锁，把该对象锁住。如下代码：
+public class Syn1 {
+	public static void main(String[] args) throws InterruptedException {
+		Student stu = new Student();
+
+		new Thread(() -> {
+			try {
+				stu.print();
+			} catch (Exception e) {
+			}
+		}).start();
+
+		new Thread(() -> {
+			try {
+				stu.print();
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}).start();
+	}
+}
+class Student{
+	public void print() throws InterruptedException{
+		synchronized (this) {
+			System.out.println("hello world!");
+			Thread.sleep(2000);
+		}
+	}
+}
+
+
