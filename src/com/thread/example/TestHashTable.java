@@ -1,11 +1,13 @@
 package com.thread.example;
+import com.thread.example.constant.Constant;
+
 import java.util.Hashtable;
 import java.util.Map;
 import java.util.UUID;
 public class TestHashTable {
     //0.定义一个容器
     static Map<UUID, UUID> map = new Hashtable<>();//线程安全的
-    static int count = 1000000;
+    static int count = Constant.count;
     static UUID[] keys = new UUID[count];
     static UUID[] values = new UUID[count];
     static {
@@ -15,11 +17,27 @@ public class TestHashTable {
         }
     }
 
+    static class MyThread extends Thread {
+        int start;
+        int gap = Constant.count / Constant.threadCount;
+
+        public MyThread(int start) {
+            this.start = start;
+        }
+
+        @Override
+        public void run() {
+            for (int i = start; i < start + gap; i++) {
+                map.put(keys[i], values[i]);
+            }
+        }
+    }
+
     public static void main(String[] args) {
         long start = System.currentTimeMillis();
-        Thread[] threads = new Thread[100];
+        Thread[] threads = new Thread[Constant.threadCount];
         for (int i = 0; i < 100; i++) {
-            threads[i] = new MyThread(i * 10000);
+            threads[i] = new MyThread(i * (Constant.count/Constant.threadCount));
         }
 
         for (Thread t : threads) {
@@ -38,19 +56,5 @@ public class TestHashTable {
         System.out.println("map size:" + map.size());
     }
 
-    static class MyThread extends Thread {
-        int start;
-        int gap = count / 100;
 
-        public MyThread(int start) {
-            this.start = start;
-        }
-
-        @Override
-        public void run() {
-            for (int i = start; i < start + gap; i++) {
-                map.put(keys[i], values[i]);
-            }
-        }
-    }
 }
