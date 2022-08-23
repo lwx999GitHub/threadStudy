@@ -4,6 +4,8 @@ import com.thread.example.constant.Constant;
 import java.util.Hashtable;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentSkipListMap;
+
 public class TestHashTable {
     //0.定义一个容器
     static Map<UUID, UUID> map = new Hashtable<>();//线程安全的
@@ -80,6 +82,8 @@ public class TestHashTable {
         end=System.currentTimeMillis();
 
         System.out.println("redd time:"+(end-start));
+
+
 
     }
 
