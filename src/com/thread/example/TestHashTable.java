@@ -36,7 +36,7 @@ public class TestHashTable {
     public static void main(String[] args) {
         long start = System.currentTimeMillis();
         Thread[] threads = new Thread[Constant.threadCount];
-        for (int i = 0; i < 100; i++) {
+        for (int i = 0; i < threads.length; i++) {
             threads[i] = new MyThread(i * (Constant.count/Constant.threadCount));
         }
 
