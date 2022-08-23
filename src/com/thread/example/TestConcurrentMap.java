@@ -1,12 +1,17 @@
 package com.thread.example;
+
 import com.thread.example.constant.Constant;
 
-import java.util.Hashtable;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
-public class TestHashTable {
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
+
+public class TestConcurrentMap {
     //0.定义一个容器
-    static Map<UUID, UUID> map = new Hashtable<>();//线程安全的
+    static Map<UUID, UUID> map = new ConcurrentHashMap<>();//线程安全的
     static int count = Constant.count;
     static UUID[] keys = new UUID[count];
     static UUID[] values = new UUID[count];
@@ -55,7 +60,7 @@ public class TestHashTable {
         System.out.println("cost total times:" + (end - start));
         System.out.println("map size:" + map.size());
 
-        // 读的时间
+// 读的时间
         start=System.currentTimeMillis();
         for(int i=0;i<threads.length;i++){
             threads[i]=new Thread(()->{
@@ -79,7 +84,7 @@ public class TestHashTable {
 
         end=System.currentTimeMillis();
 
-        System.out.println("redd time:"+(end-start));
+        System.out.println("read time:"+(end-start));
 
     }
 

@@ -1,12 +1,11 @@
 package com.thread.example;
 import com.thread.example.constant.Constant;
 
-import java.util.Hashtable;
-import java.util.Map;
-import java.util.UUID;
-public class TestHashTable {
+import java.util.*;
+
+public class TestSynchrnoizedMap {
     //0.定义一个容器
-    static Map<UUID, UUID> map = new Hashtable<>();//线程安全的
+    static Map<UUID, UUID> map = Collections.synchronizedMap(new HashMap<UUID,UUID>());//线程安全的
     static int count = Constant.count;
     static UUID[] keys = new UUID[count];
     static UUID[] values = new UUID[count];
@@ -57,14 +56,13 @@ public class TestHashTable {
 
         // 读的时间
         start=System.currentTimeMillis();
-        for(int i=0;i<threads.length;i++){
-            threads[i]=new Thread(()->{
-                for(int j=0;j<10000000;j++){
+        for(int i=0;i<threads.length;i++) {
+            threads[i] = new Thread(() -> {
+                for (int j = 0; j < 10000000; j++) {
                     map.get(keys[10]);
                 }
             });
         }
-
         for(Thread t :threads){
             t.start();
         }
@@ -80,6 +78,8 @@ public class TestHashTable {
         end=System.currentTimeMillis();
 
         System.out.println("redd time:"+(end-start));
+
+
 
     }
 
