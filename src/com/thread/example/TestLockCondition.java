@@ -14,21 +14,22 @@ public class TestLockCondition {
         char[] aI = "1234567".toCharArray();
         char[] aC = "ABCDEFG".toCharArray();
         Lock lock = new ReentrantLock();
-        Condition condition = lock.newCondition();
+        Condition condition1= lock.newCondition();
+        Condition condition2 = lock.newCondition();
         t1 = new Thread(() -> {
             try {
                 lock.lock();
                 for (char c : aI) {
                     System.out.print(c);
                     try {
-                        condition.signal();
-                        condition.await();
+                        condition2.signal();
+                        condition1.await();
                     } catch (InterruptedException e) {
                         e.printStackTrace();
                     }
 
                 }
-                condition.signal();
+                condition2.signal();
             } catch (Exception e) {
                 e.printStackTrace();
             } finally {
@@ -43,14 +44,14 @@ public class TestLockCondition {
                 for (char c : aC) {
                     System.out.print(c);
                     try {
-                        condition.signal();
-                        condition.await();
+                        condition1.signal();
+                        condition2.await();
                     } catch (InterruptedException e) {
                         e.printStackTrace();
                     }
 
                 }
-                condition.signal();
+                condition1.signal();
             } catch (Exception e) {
                 e.printStackTrace();
             } finally {
