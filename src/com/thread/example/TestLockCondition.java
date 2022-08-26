@@ -1,5 +1,6 @@
 package com.thread.example;
 
+import java.util.concurrent.Executors;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.LockSupport;
@@ -10,6 +11,9 @@ public class TestLockCondition {
     static Thread t1 = null, t2 = null;
 
     public static void main(String[] args) {
+
+
+
         final Object o = new Object();
         char[] aI = "1234567".toCharArray();
         char[] aC = "ABCDEFG".toCharArray();
@@ -59,9 +63,7 @@ public class TestLockCondition {
             }
 
         }, "t2");
-
         t1.start();
         t2.start();
-
     }
 }
