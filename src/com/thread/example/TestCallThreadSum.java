@@ -4,71 +4,69 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.*;
 
-public class TestCallThreadSum implements Callable<Integer> {
-    private String name;
-    private List<Integer> list = new ArrayList<Integer>();
-
-    public TestCallThreadSum(String name, List list) {
-        this.name = name;
-        this.list = list;
+public class TestCallThreadSum implements Callable<Long> {
+    private int start;
+    public TestCallThreadSum(int start) {
+        this.start = start;
     }
-
-   // static int sum = 0;
-
     @Override
-    public Integer call() throws Exception {
-        int sum=0;
-      for(int i=0;i<list.size();i++){
-          sum=sum+list.get(i);
-      }
+    public Long call() throws Exception {
+        long sum = 0;
+        System.out.println("ThreadName:"+Thread.currentThread().getName());
+        for (int i = start+1; i <= start + 4166; i++) {
+            sum = sum + i;
+            Thread.sleep(2);
+        }
         return sum;
     }
-
-
     public static void main(String[] args) throws ExecutionException, InterruptedException {
-
-        List<Integer> list1 = new ArrayList<Integer>();
-        for (int i = 1; i <= 3333; i++) {
-            list1.add(i);
+        long start = System.currentTimeMillis();
+        ExecutorService ser = new ThreadPoolExecutor(8, 8, 10, TimeUnit.SECONDS,
+                new ArrayBlockingQueue<>(1), Executors.defaultThreadFactory(), new ThreadPoolExecutor.CallerRunsPolicy());
+        List<Future<Long>> resultList = new ArrayList<Future<Long>>();
+        for (int i = 0; i < 8; i++) {
+            TestCallThreadSum threadtest1 = new TestCallThreadSum(i * 4166);
+            Future<Long> res = ser.submit(threadtest1);
+            resultList.add(res);
         }
-
-        List<Integer> list2 = new ArrayList<Integer>();
-        for (int i = 3334; i <= 6667; i++) {
-            list2.add(i);
+        Long sum = 0L;
+        for (int i = 0; i < resultList.size(); i++) {
+            Future<Long> result = resultList.get(i);
+            sum = sum + result.get();
         }
-
-        List<Integer> list3 = new ArrayList<Integer>();
-        for (int i = 6668; i <= 10000; i++) {
-            list3.add(i);
-        }
-        TestCallThreadSum threadtest1 = new TestCallThreadSum("小明", list1);
-        TestCallThreadSum threadtest2 = new TestCallThreadSum("小陈", list2);
-        TestCallThreadSum threadtest3 = new TestCallThreadSum("小王", list3);
-
-        ExecutorService ser = new ThreadPoolExecutor(1, 1, 10, TimeUnit.SECONDS,
-                new ArrayBlockingQueue<>(1000), Executors.defaultThreadFactory(), new ThreadPoolExecutor.CallerRunsPolicy());
-        //(2)提交执行
-        Future<Integer> r1 = ser.submit(threadtest1);
-        Future<Integer> r2 = ser.submit(threadtest2);
-        Future<Integer> r3 = ser.submit(threadtest3);
-
-        //ser.
-        //(3)获取结果
-        Integer rs1 = r1.get();
-        Integer rs2 = r2.get();
-        Integer rs3 = r3.get();
-       // System.out.println("sum=" + rs1.intValue()+rs2.intValue()+rs3.intValue());
-        System.out.println("rs1=" + rs1);
-        System.out.println("rs2=" + rs2);
-        System.out.println("rs3=" + rs3);
-
-
-
-
-        //(4)关闭服务
+        System.out.println("sum:" + sum);
+        long end = System.currentTimeMillis();
+        System.out.println("cost time total:" + (end - start));
         ser.shutdown();
-
     }
+
+/*    ThreadName:pool-1-thread-1
+    ThreadName:pool-1-thread-5
+    ThreadName:pool-1-thread-3
+    ThreadName:pool-1-thread-4
+    ThreadName:pool-1-thread-6
+    ThreadName:pool-1-thread-2
+    ThreadName:pool-1-thread-8
+    ThreadName:pool-1-thread-7
+    sum:555394456
+    cost time total:11161*/
+
+    //与单线程测试
+/*    public static void main(String[] args) throws InterruptedException {
+        long start = System.currentTimeMillis();
+        long sum = 0L;
+        for (int i = 0; i <= 33328; i++) {
+            sum = sum + i;
+            Thread.sleep(2);
+        }
+        System.out.println("sum=" + sum);
+        long end = System.currentTimeMillis();
+        System.out.println("cost time:" + (end - start));
+    }*/
+
+    //sleep 2秒
+/*        sum=555394456
+        cost time:82910*/
 
 }
 
